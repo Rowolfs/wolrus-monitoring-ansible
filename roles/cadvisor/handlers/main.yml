@@ -1,0 +1,4 @@
+---
+- name: restart cadvisor
+  ansible.builtin.command: docker compose -f {{ monitoring_agent_dir }}/docker-compose.cadvisor.yml restart cadvisor
+  changed_when: false

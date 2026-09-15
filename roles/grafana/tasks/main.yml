@@ -1,0 +1,120 @@
+---
+# Deploy the central monitoring stack: Grafana, Prometheus, Loki, Alertmanager.
+
+- name: Ensure monitoring base directory exists
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure stack subdirectories exist
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - prometheus
+    - loki
+    - alertmanager
+    - alertmanager/templates
+    - grafana
+    - grafana/provisioning
+    - grafana/provisioning/datasources
+    - grafana/provisioning/dashboards
+
+# --- Docker Compose ----------------------------------------------------------
+- name: Template docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ monitoring_base_dir }}/docker-compose.yml"
+    mode: "0640"
+  notify: restart monitoring stack
+
+# --- Prometheus --------------------------------------------------------------
+- name: Template prometheus.yml (targets generated from inventory)
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ monitoring_base_dir }}/prometheus/prometheus.yml"
+    mode: "0640"
+  notify: reload prometheus
+
+- name: Copy alert rules (static - pure Prometheus rules)
+  ansible.builtin.copy:
+    src: alerts.yml
+    dest: "{{ monitoring_base_dir }}/prometheus/alerts.yml"
+    mode: "0640"
+  notify: reload prometheus
+
+# --- Loki --------------------------------------------------------------------
+- name: Template Loki config
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: "{{ monitoring_base_dir }}/loki/loki-config.yml"
+    mode: "0640"
+  notify: restart loki
+
+# --- Alertmanager ------------------------------------------------------------
+- name: Template alertmanager.yml
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: "{{ monitoring_base_dir }}/alertmanager/alertmanager.yml"
+    mode: "0640"
+  notify: reload alertmanager
+
+- name: Copy Telegram message template (Go templating - no Jinja)
+  ansible.builtin.copy:
+    src: telegram.tmpl
+    dest: "{{ monitoring_base_dir }}/alertmanager/templates/telegram.tmpl"
+    mode: "0640"
+  notify: reload alertmanager
+
+# --- Grafana provisioning ----------------------------------------------------
+- name: Template Grafana datasources provisioning
+  ansible.builtin.template:
+    src: grafana-datasources.yml.j2
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/datasources/datasources.yml"
+    mode: "0640"
+  notify: restart grafana
+
+- name: Configure Grafana dashboards provider (no dashboards shipped yet)
+  ansible.builtin.copy:
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/dashboards.yml"
+    mode: "0640"
+    content: |
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 30
+          allowUiUpdates: true
+          options:
+            path: /var/lib/grafana/dashboards
+
+# --- Bring up the stack ------------------------------------------------------
+- name: Apply monitoring stack (docker compose up -d)
+  ansible.builtin.command:
+    cmd: docker compose -f {{ monitoring_base_dir }}/docker-compose.yml up -d --remove-orphans
+  register: compose_up
+  changed_when: >-
+    'Started' in (compose_up.stdout ~ compose_up.stderr)
+    or 'Recreated' in (compose_up.stdout ~ compose_up.stderr)
+    or 'Created' in (compose_up.stdout ~ compose_up.stderr)
+
+- name: Flush handlers before verifying
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for Grafana to be reachable
+  ansible.builtin.command:
+    cmd: curl -fsS -o /dev/null http://127.0.0.1:{{ grafana_port }}/api/health
+  register: grafana_health
+  changed_when: false
+  retries: 10
+  delay: 3
+  until: grafana_health.rc == 0

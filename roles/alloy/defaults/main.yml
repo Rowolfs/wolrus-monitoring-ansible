@@ -1,0 +1,7 @@
+---
+# Defaults for the Grafana Alloy agent (log collection) on nodes.
+
+alloy_image: grafana/alloy:1.5.0
+
+# Port Alloy listens on for its own UI (bound loopback-only on the node).
+alloy_listen_port: 12345

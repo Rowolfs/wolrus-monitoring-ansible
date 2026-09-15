@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  author: wolrus
+  description: Grafana Alloy - collect Docker container logs, ship to Loki.
+  license: MIT
+
+dependencies:
+  - role: common

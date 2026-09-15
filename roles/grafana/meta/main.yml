@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  author: wolrus
+  description: Central Grafana + Prometheus + Loki + Alertmanager stack.
+  license: MIT
+
+dependencies:
+  - role: common

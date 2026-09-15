@@ -1,0 +1,11 @@
+---
+# SECRETS - edit these values, then encrypt this file with ansible-vault:
+#
+#   ansible-vault encrypt inventories/production/group_vars/vault.yml
+#
+# This file ships with placeholder values only. Never commit real secrets.
+# Ansible Vault encrypted files are safe to commit to version control.
+
+vault_grafana_admin_password: CHANGE_ME
+vault_telegram_bot_token: CHANGE_ME
+vault_telegram_chat_id: CHANGE_ME

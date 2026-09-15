@@ -1,0 +1,7 @@
+---
+- name: Deploy Grafana monitoring stack
+  hosts: grafana
+  become: true
+
+  roles:
+    - grafana

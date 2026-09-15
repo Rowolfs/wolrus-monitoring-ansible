@@ -1,0 +1,27 @@
+---
+# Handlers: only act when the relevant config changed (idempotency).
+
+- name: restart monitoring stack
+  ansible.builtin.command: docker compose -f {{ monitoring_base_dir }}/docker-compose.yml up -d --remove-orphans
+  changed_when: false
+
+- name: reload prometheus
+  ansible.builtin.command: curl -fsS -X POST http://127.0.0.1:{{ prometheus_port }}/-/reload
+  changed_when: false
+  failed_when: false
+
+- name: restart prometheus
+  ansible.builtin.command: docker compose -f {{ monitoring_base_dir }}/docker-compose.yml restart prometheus
+  changed_when: false
+
+- name: restart loki
+  ansible.builtin.command: docker compose -f {{ monitoring_base_dir }}/docker-compose.yml restart loki
+  changed_when: false
+
+- name: reload alertmanager
+  ansible.builtin.command: docker compose -f {{ monitoring_base_dir }}/docker-compose.yml restart alertmanager
+  changed_when: false
+
+- name: restart grafana
+  ansible.builtin.command: docker compose -f {{ monitoring_base_dir }}/docker-compose.yml restart grafana
+  changed_when: false

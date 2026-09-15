@@ -1,0 +1,25 @@
+{{ define "telegram.default" -}}
+{{- if eq .Status "firing" -}}
+{{- if eq .CommonLabels.severity "critical" }}🔴 CRITICAL
+{{- else if eq .CommonLabels.severity "warning" }}🟡 WARNING
+{{- else }}🔴 FIRING
+{{- end }}
+{{- else -}}
+🟢 RESOLVED
+{{- end }}
+
+{{ range .Alerts -}}
+Alert: {{ .Labels.alertname }}
+{{- if .Labels.host }}
+Node: {{ .Labels.host }}
+{{- end }}
+{{- if .Labels.name }}
+Container: {{ .Labels.name }}
+{{- end }}
+Severity: {{ .Labels.severity }}
+{{- if .Annotations.description }}
+Description: {{ .Annotations.description }}
+{{- end }}
+Status: {{ .Status }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,4 @@
+---
+- name: restart node_exporter
+  ansible.builtin.command: docker compose -f {{ monitoring_agent_dir }}/docker-compose.node_exporter.yml restart node_exporter
+  changed_when: false

@@ -1,0 +1,33 @@
+---
+# Deploy Grafana Alloy on a node to collect Docker container logs -> Loki.
+
+- name: Ensure monitoring-agent directory exists
+  ansible.builtin.file:
+    path: "{{ monitoring_agent_dir }}/alloy"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Template Alloy configuration
+  ansible.builtin.template:
+    src: config.alloy.j2
+    dest: "{{ monitoring_agent_dir }}/alloy/config.alloy"
+    mode: "0640"
+  notify: restart alloy
+
+- name: Template Alloy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ monitoring_agent_dir }}/docker-compose.yml"
+    mode: "0640"
+  notify: restart alloy
+
+- name: Apply Alloy (docker compose up -d)
+  ansible.builtin.command:
+    cmd: docker compose -f {{ monitoring_agent_dir }}/docker-compose.yml up -d --remove-orphans
+  register: alloy_up
+  changed_when: >-
+    'Started' in (alloy_up.stdout ~ alloy_up.stderr)
+    or 'Recreated' in (alloy_up.stdout ~ alloy_up.stderr)
+    or 'Created' in (alloy_up.stdout ~ alloy_up.stderr)

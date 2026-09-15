@@ -1,0 +1,34 @@
+---
+# Shared variables - apply to every host (grafana + nodes).
+
+# Logical environment label attached to metrics and logs.
+monitoring_environment: production
+
+# Base directories (do not hardcode these anywhere else).
+monitoring_base_dir: /opt/monitoring        # central grafana server
+monitoring_agent_dir: /opt/monitoring-agent # remote nodes
+
+# Service ports.
+grafana_port: 3000
+prometheus_port: 9090
+loki_port: 3100
+alertmanager_port: 9093
+node_exporter_port: 9100
+cadvisor_port: 8080
+
+# Loki retention (small single-node, local disk).
+loki_retention_period: 30d
+
+# Docker compose project name (used for container/network naming).
+monitoring_compose_project: monitoring
+
+# ----------------------------------------------------------------------------
+# Inventory-derived values.
+#
+# The central Grafana server address is taken from the `grafana` inventory
+# group - never hardcoded. Nodes use this to push logs to Loki.
+# ----------------------------------------------------------------------------
+grafana_server_address: "{{ hostvars[groups['grafana'][0]].ansible_host | default(groups['grafana'][0]) }}"
+
+# Loki push URL used by Grafana Alloy on every node.
+loki_push_url: "http://{{ grafana_server_address }}:{{ loki_port }}/loki/api/v1/push"

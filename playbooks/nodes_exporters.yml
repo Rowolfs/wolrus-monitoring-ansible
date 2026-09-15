@@ -1,0 +1,9 @@
+---
+- name: Deploy monitoring exporters to nodes
+  hosts: nodes
+  become: true
+
+  roles:
+    - alloy
+    - node_exporter
+    - cadvisor

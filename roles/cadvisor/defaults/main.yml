@@ -1,0 +1,4 @@
+---
+# Defaults for cAdvisor on monitored nodes.
+
+cadvisor_image: gcr.io/cadvisor/cadvisor:v0.49.1

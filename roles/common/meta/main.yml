@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: wolrus
+  description: Common base setup (Docker Engine + compose v2) shared by all roles.
+  license: MIT
+
+dependencies: []

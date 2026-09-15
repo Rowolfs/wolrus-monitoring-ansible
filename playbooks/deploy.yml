@@ -1,0 +1,5 @@
+---
+- name: Deploy complete monitoring stack (grafana server + nodes)
+  import_playbook: grafana.yml
+
+- import_playbook: nodes_exporters.yml

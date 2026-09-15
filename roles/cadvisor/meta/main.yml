@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  author: wolrus
+  description: cAdvisor - Docker container metrics (CPU/mem/net/fs).
+  license: MIT
+
+dependencies:
+  - role: common

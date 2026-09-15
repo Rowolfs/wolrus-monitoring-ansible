@@ -1,0 +1,4 @@
+---
+# Defaults for node_exporter on monitored nodes.
+
+node_exporter_image: prom/node-exporter:v1.8.2

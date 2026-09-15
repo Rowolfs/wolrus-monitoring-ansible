@@ -1,0 +1,15 @@
+---
+# Defaults for the common role.
+
+# Docker APT repository channel.
+docker_apt_channel: stable
+
+# Extra base packages installed on every host.
+common_packages:
+  - ca-certificates
+  - curl
+  - gnupg
+  - apt-transport-https
+  - software-properties-common
+  - python3
+  - jq

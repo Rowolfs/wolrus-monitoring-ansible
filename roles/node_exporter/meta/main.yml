@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  author: wolrus
+  description: node_exporter - host metrics (CPU/mem/disk/fs/net).
+  license: MIT
+
+dependencies:
+  - role: common

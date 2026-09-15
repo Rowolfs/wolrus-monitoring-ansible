@@ -1,0 +1,22 @@
+---
+# Defaults for the central grafana monitoring stack.
+
+# Container images (pinned for reproducibility).
+grafana_image: grafana/grafana:11.2.0
+prometheus_image: prom/prometheus:v2.54.1
+loki_image: grafana/loki:3.2.0
+alertmanager_image: prom/alertmanager:v0.27.0
+
+# Bind addresses.
+# Grafana + Loki must be reachable across the private LAN (nodes push logs to
+# Loki, users browse Grafana). Prometheus/Alertmanager are kept loopback-only.
+grafana_bind_address: "0.0.0.0"
+prometheus_bind_address: "127.0.0.1"
+loki_bind_address: "0.0.0.0"
+alertmanager_bind_address: "127.0.0.1"
+
+# Prometheus TSDB retention.
+prometheus_retention: 30d
+
+# Grafana admin user (password comes from vault via group_vars/grafana.yml).
+grafana_admin_user: admin

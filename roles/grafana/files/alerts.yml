@@ -1,0 +1,95 @@
+# Prometheus alert rules.
+# This file is static (no Ansible variables) - copied verbatim by the grafana role.
+# Annotations use YAML block scalars (>-) so Go templating like
+# {{ printf "%.0f" $value }} is preserved literally.
+# Thresholds avoid firing on short spikes (lookback window + `for`).
+
+groups:
+  - name: node_alerts
+    rules:
+      - alert: ServerDown
+        expr: up{job="node_exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: >-
+            Server {{ $labels.host }} is down
+          description: >-
+            node_exporter on {{ $labels.host }} has been unreachable for more
+            than 2 minutes.
+
+      - alert: HighCPU
+        expr: 100 - (avg by (host) (rate(node_cpu_seconds_total{job="node_exporter",mode="idle"}[5m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            High CPU on {{ $labels.host }}
+          description: >-
+            CPU usage on {{ $labels.host }} is
+            {{ printf "%.0f" $value }}% (threshold 90%) for 5 minutes.
+
+      - alert: HighMemory
+        expr: (1 - (node_memory_MemAvailable_bytes{job="node_exporter"} / node_memory_MemTotal_bytes{job="node_exporter"})) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            High memory on {{ $labels.host }}
+          description: >-
+            Memory usage on {{ $labels.host }} is
+            {{ printf "%.0f" $value }}% (threshold 90%) for 5 minutes.
+
+      - alert: LowDiskSpace
+        expr: (node_filesystem_avail_bytes{job="node_exporter",fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|autofs|cgroup"} / node_filesystem_size_bytes{job="node_exporter",fstype!~"tmpfs|overlay|squashfs|ramfs|nsfs|autofs|cgroup"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            Low disk space on {{ $labels.host }}
+          description: >-
+            Disk {{ $labels.device }} mounted at {{ $labels.mountpoint }} on
+            {{ $labels.host }} has {{ printf "%.0f" $value }}% available
+            (threshold 10%).
+
+      - alert: ExporterDown
+        expr: up{job=~"node_exporter|cadvisor"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            Exporter down on {{ $labels.host }}
+          description: >-
+            {{ $labels.job }} on {{ $labels.host }} has been down for more than
+            2 minutes.
+
+  - name: container_alerts
+    rules:
+      - alert: ContainerHighCPU
+        expr: sum by (name, host) (rate(container_cpu_usage_seconds_total{name!=""}[5m])) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            Container high CPU on {{ $labels.host }}
+          description: >-
+            Container {{ $labels.name }} on {{ $labels.host }} is using
+            {{ printf "%.0f" $value }}% CPU (threshold 90%) for 5 minutes.
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""} > 0.90) and on (name) (container_spec_memory_limit_bytes{name!=""} > 0)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: >-
+            Container high memory on {{ $labels.host }}
+          description: >-
+            Container {{ $labels.name }} on {{ $labels.host }} is using more than
+            90% of its memory limit for 5 minutes.

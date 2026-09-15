@@ -1,0 +1,26 @@
+---
+# Deploy cAdvisor in a container, exposing Docker/container metrics to Prometheus.
+
+- name: Ensure monitoring-agent directory exists
+  ansible.builtin.file:
+    path: "{{ monitoring_agent_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Template cAdvisor docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ monitoring_agent_dir }}/docker-compose.cadvisor.yml"
+    mode: "0640"
+  notify: restart cadvisor
+
+- name: Apply cAdvisor (docker compose up -d)
+  ansible.builtin.command:
+    cmd: docker compose -f {{ monitoring_agent_dir }}/docker-compose.cadvisor.yml up -d --remove-orphans
+  register: cadvisor_up
+  changed_when: >-
+    'Started' in (cadvisor_up.stdout ~ cadvisor_up.stderr)
+    or 'Recreated' in (cadvisor_up.stdout ~ cadvisor_up.stderr)
+    or 'Created' in (cadvisor_up.stdout ~ cadvisor_up.stderr)

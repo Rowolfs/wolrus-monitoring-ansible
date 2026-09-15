@@ -1,0 +1,18 @@
+# Ansible
+*.retry
+__pycache__/
+.cache/
+
+# Vault password files (never commit)
+.vault_pass
+inventories/production/vault_pass
+vault_pass
+
+# Local editor files
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Claude Code local settings (per-user, not shared)
+.claude/settings.local.json

@@ -1,0 +1,12 @@
+---
+# Variables for the central Grafana/monitoring server.
+#
+# Secrets live in vault.yml (encrypted with ansible-vault) and are referenced
+# here - never hardcode real passwords or tokens.
+
+grafana_admin_user: admin
+grafana_admin_password: "{{ vault_grafana_admin_password }}"
+
+# Alertmanager -> Telegram integration (native telegram_configs receiver).
+telegram_bot_token: "{{ vault_telegram_bot_token }}"
+telegram_chat_id: "{{ vault_telegram_chat_id }}"
