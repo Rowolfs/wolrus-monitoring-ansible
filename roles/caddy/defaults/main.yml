@@ -1,0 +1,12 @@
+---
+# Defaults for the Caddy reverse proxy role.
+#
+# Caddy terminates TLS (automatic Let's Encrypt) and reverse-proxies the
+# Grafana UI. It runs on the host (not in Docker) so it can bind 80/443
+# directly and reach Grafana on the loopback interface.
+#
+# The domain and ACME email are defined in group_vars/grafana.yml and are
+# required - the role will fail fast if they are left as placeholders.
+
+# Fail the run if the domain was not overridden (still the example value).
+caddy_require_real_domain: true

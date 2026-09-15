@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  author: wolrus
+  description: Caddy reverse proxy with automatic Let's Encrypt TLS for Grafana.
+  license: MIT
+
+dependencies:
+  - role: common

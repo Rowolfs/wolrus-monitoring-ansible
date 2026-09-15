@@ -8,9 +8,10 @@ loki_image: grafana/loki:3.2.0
 alertmanager_image: prom/alertmanager:v0.27.0
 
 # Bind addresses.
-# Grafana + Loki must be reachable across the private LAN (nodes push logs to
-# Loki, users browse Grafana). Prometheus/Alertmanager are kept loopback-only.
-grafana_bind_address: "0.0.0.0"
+# Grafana binds loopback-only: it is fronted by Caddy (HTTPS, public). Loki
+# must be reachable across the private LAN (nodes push logs to Loki).
+# Prometheus/Alertmanager are kept loopback-only.
+grafana_bind_address: "127.0.0.1"
 prometheus_bind_address: "127.0.0.1"
 loki_bind_address: "0.0.0.0"
 alertmanager_bind_address: "127.0.0.1"

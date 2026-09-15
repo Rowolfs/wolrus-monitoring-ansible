@@ -1,0 +1,88 @@
+---
+# Install Caddy (official apt repo) and configure the reverse proxy for Grafana.
+#
+# Caddy runs on the host, terminates TLS automatically via Let's Encrypt, and
+# reverse-proxies the Grafana UI (Grafana itself binds loopback-only).
+
+- name: Fail clearly on unsupported distribution family
+  ansible.builtin.fail:
+    msg: >-
+      The caddy role supports Debian/Ubuntu only (got
+      {{ ansible_os_family }}).
+  when: ansible_os_family != "Debian"
+
+- name: Fail if grafana_domain was not set away from the placeholder
+  ansible.builtin.fail:
+    msg: >-
+      grafana_domain is still the placeholder 'monitoring.example.com'.
+      Set a real domain in inventories/production/group_vars/grafana.yml and
+      point its DNS A record at this host before running the caddy role.
+  when: caddy_require_real_domain | bool and grafana_domain == 'monitoring.example.com'
+
+- name: Detect apt architecture for Caddy repo
+  ansible.builtin.set_fact:
+    caddy_arch: >-
+      {{ 'amd64' if ansible_architecture == 'x86_64'
+         else 'arm64' if ansible_architecture == 'aarch64'
+         else ansible_architecture }}
+
+- name: Ensure required packages for apt repo are present
+  ansible.builtin.apt:
+    name:
+      - debian-keyring
+      - apt-transport-https
+    state: present
+    update_cache: true
+
+- name: Create Caddy apt keyring directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Download Caddy GPG key
+  ansible.builtin.get_url:
+    url: https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+    dest: /etc/apt/keyrings/caddy-stable.gpg
+    mode: "0644"
+    force: true
+
+- name: Add Caddy apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ caddy_arch }} signed-by=/etc/apt/keyrings/caddy-stable.gpg]
+      https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main
+    state: present
+    update_cache: true
+    filename: caddy-stable
+
+- name: Install Caddy
+  ansible.builtin.apt:
+    name: caddy
+    state: present
+    update_cache: true
+
+- name: Template Caddyfile (reverse proxy + automatic TLS)
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: /etc/caddy/Caddyfile
+    mode: "0644"
+  notify: reload caddy
+
+- name: Ensure Caddy service is enabled and started
+  ansible.builtin.systemd:
+    name: caddy
+    state: started
+    enabled: true
+
+- name: Flush handlers before verifying
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for Caddy to be reachable on port 443
+  ansible.builtin.command:
+    cmd: curl -fsS -o /dev/null https://{{ grafana_domain }}/api/health
+  register: caddy_health
+  changed_when: false
+  retries: 15
+  delay: 4
+  until: caddy_health.rc == 0

@@ -197,9 +197,13 @@ Assume a private LAN/VPN. Required reachability:
 - `3100/tcp` (Loki, log push)
 
 **grafana server (inbound, for users):**
-- `3000/tcp` (Grafana UI) — LAN only
+- `443/tcp` (HTTPS, Caddy → Grafana) — public
+- `80/tcp` (HTTP, Caddy ACME challenge + redirect to 443) — public
 
-Bound loopback-only (not exposed): Prometheus `9090`, Alertmanager `9093`.
+Grafana itself (`3000/tcp`) binds loopback-only behind Caddy; users reach it at
+`https://<grafana_domain>` with automatic Let's Encrypt TLS.
+Bound loopback-only (not exposed): Grafana `3000`, Prometheus `9090`,
+Alertmanager `9093`.
 node_exporter/cAdvisor/Alloy bind to the host over the private LAN — restrict
 with a host firewall if the LAN is not fully trusted. Do **not** expose
 Prometheus, Loki, Alertmanager, cAdvisor or node_exporter to the public Internet.
@@ -238,7 +242,7 @@ curl -s http://127.0.0.1:8080/metrics | head
 curl -s http://127.0.0.1:12345/  >/dev/null && echo "alloy ok"
 ```
 
-Grafana: open `http://<grafana_server_ip>:3000` and log in with
+Grafana: open `https://{{ grafana_domain }}` and log in with
 `{{ grafana_admin_user }}` / your vault password. The Prometheus and Loki
 datasources are already provisioned — verify under
 **Connections → Data sources**.

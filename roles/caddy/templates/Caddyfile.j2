@@ -1,0 +1,19 @@
+# Managed by Ansible (caddy role) - do not edit by hand.
+#
+# Caddy automatically obtains and renews a Let's Encrypt certificate for
+# {{ grafana_domain }}. Requirements:
+#   1. The domain's DNS A record points at this host.
+#   2. Ports 80/443 are open to the Internet (80 is needed for the ACME
+#      HTTP-01 challenge and redirects to 443).
+
+{
+	email {{ grafana_acme_email }}
+}
+
+{{ grafana_domain }} {
+	encode zstd gzip
+
+	reverse_proxy 127.0.0.1:{{ grafana_port }} {
+		header_up Host {host}
+	}
+}

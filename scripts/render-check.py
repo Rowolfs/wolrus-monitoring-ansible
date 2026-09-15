@@ -35,6 +35,9 @@ MOCK_VARS = {
     "grafana_admin_password": "secret",
     "telegram_bot_token": "123:abc",
     "telegram_chat_id": "123456",
+    # caddy / public HTTPS frontend
+    "grafana_domain": "monitoring.example.com",
+    "grafana_acme_email": "you@example.com",
     # alloy role
     "alloy_image": "grafana/alloy:1.5.0",
     "alloy_listen_port": 12345,
@@ -63,6 +66,7 @@ TEMPLATES = [
     ("roles/grafana/templates", "loki-config.yml.j2", True),
     ("roles/grafana/templates", "alertmanager.yml.j2", True),
     ("roles/grafana/templates", "grafana-datasources.yml.j2", True),
+    ("roles/caddy/templates", "Caddyfile.j2", False),
     ("roles/alloy/templates", "config.alloy.j2", False),
     ("roles/alloy/templates", "docker-compose.yml.j2", True),
     ("roles/node_exporter/templates", "docker-compose.yml.j2", True),

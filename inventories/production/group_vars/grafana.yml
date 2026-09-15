@@ -10,3 +10,11 @@ grafana_admin_password: "{{ vault_grafana_admin_password }}"
 # Alertmanager -> Telegram integration (native telegram_configs receiver).
 telegram_bot_token: "{{ vault_telegram_bot_token }}"
 telegram_chat_id: "{{ vault_telegram_chat_id }}"
+
+# --- Public HTTPS frontend (Caddy + Let's Encrypt) -------------------------
+# Domain serving the Grafana UI over HTTPS. Point this domain's DNS A record
+# at the grafana server, then set it here. Caddy obtains and renews the cert.
+grafana_domain: monitoring.example.com
+
+# Email used for Let's Encrypt certificate issuance and expiry notifications.
+grafana_acme_email: you@example.com

@@ -17,6 +17,9 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ALLOW_ORG_CREATE: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_DOMAIN: "{{ grafana_domain }}"
+      GF_SERVER_ROOT_URL: "https://{{ grafana_domain }}"
+      GF_SECURITY_COOKIE_SECURE: "true"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
